@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css"></link>
+</head>
+<body>
+
+	<div class="container">
+		<div class="row clearfix">
+			<br /> <br />
+			<div class="col-md-3 column"></div>
+			<div class="col-md-6 column">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3>
+							<strong class="text-primary">Upload Pictures to add logo</strong>
+						</h3>
+					</div>
+					<div class="panel-body">
+						<form action="/upload" method="post" enctype="multipart/form-data">
+							<div class="form-group">
+								<label class="col-sm-4 control-label" for="files[]">Picture
+									Selection:</label>
+								<div class="col-sm-5">
+									<input type="file" name="files[]" multiple="multiple" />
+								</div>
+								<div class="col-sm-8" style="margin-top: 20px">
+									<button type="submit"
+										class="btn btn-primary btn-large btn-primary">Upload</button>
+								</div>
+							</div>
+							<input type="hidden" th:name="${_csrf.parameterName}"
+								th:value="${_csrf.token}" />
+						</form>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-3 column"></div>
+		</div>
+	</div>
+</body>
+</html>

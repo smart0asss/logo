@@ -2,7 +2,6 @@ package org.tbe.watermark.controller;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.zip.ZipOutputStream;
@@ -10,6 +9,7 @@ import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
@@ -24,6 +24,8 @@ import org.tbe.watermark.service.IWatermarkService;
 @Controller
 public class UploadController {
 
+	private final static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(UploadController.class);
+
 	@Autowired
 	private IWatermarkService service;
 
@@ -36,7 +38,9 @@ public class UploadController {
 	}
 
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
-	public String uploadFiles(@RequestParam("files[]") ArrayList<MultipartFile> files, HttpServletResponse response) throws IOException {
+	public String uploadFiles(@RequestParam("files[]") ArrayList<MultipartFile> files, HttpServletResponse response)
+			throws IOException {
+		LOGGER.info("Requested upload for files : " + files);
 		if (files == null || files.size() == 0) {
 			return "upload";
 		}
@@ -48,9 +52,12 @@ public class UploadController {
 		}
 		zos.flush();
 		zos.close();
-		response.setHeader("Content-Disposition","attachment;filename=pictures.zip");
-		IOUtils.copy(new ByteArrayInputStream(bos.toByteArray()), response.getOutputStream());
+		response.setHeader("Content-Disposition", "attachment;filename=pictures.zip");
 
+		ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+		IOUtils.copy(bis, response.getOutputStream());
+
+		bis.close();
 		response.flushBuffer();
 		return null;
 	}

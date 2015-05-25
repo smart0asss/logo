@@ -3,12 +3,8 @@ package org.tbe.watermark.service;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
@@ -16,10 +12,13 @@ import java.util.zip.ZipOutputStream;
 
 import javax.imageio.ImageIO;
 
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class WatermarkService implements IWatermarkService {
+
+	private final static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(WatermarkService.class);
 
 	@Override
 	public void addWatermarkToImage(ZipOutputStream zip, InputStream imageFile, String name, InputStream logoFile) {
@@ -40,50 +39,33 @@ public class WatermarkService implements IWatermarkService {
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			ImageIO.write(combined, "PNG", bos);
 			bos.flush();
+			
+			ByteArrayOutputStream jpgOut = new ByteArrayOutputStream();
+			ByteArrayInputStream pngIn = new ByteArrayInputStream(bos.toByteArray());
+			
+			convertFormat(pngIn,jpgOut,"JPEG");
 
-			ZipEntry ze = new ZipEntry(System.currentTimeMillis() + ".png");
+			ZipEntry ze = new ZipEntry(System.currentTimeMillis() + ".jpg");
 			zip.putNextEntry(ze);
 			zip.write(bos.toByteArray());
 			zip.closeEntry();
 
+			jpgOut.close();
+			pngIn.close();
+			bos.close();
+			g.dispose();
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error("Error in processing : ",e);
 		}
 
 	}
 	
-	public static void main(String args[]) throws IOException{
-		File f = new File("/Users/timo/.ssh");
-		System.out.println(f.listFiles());
-		zipFile(f.listFiles(), new File("output.zip"));
-	}
-	  public static void zipFile(final File[] files, final File targetZipFile) throws IOException {
-		    try {
-		      ByteArrayOutputStream   fos = new ByteArrayOutputStream();
-		      ZipOutputStream zos = new ZipOutputStream(fos);
-		      byte[] buffer = new byte[4096];
-		      for (int i = 0; i < files.length; i++) {
-		        File currentFile = files[i];
-		        if (!currentFile.isDirectory()) {
-		          ZipEntry entry = new ZipEntry(currentFile.getName());
-		          FileInputStream fis = new FileInputStream(currentFile);
-		          zos.putNextEntry(entry);
-		          int read = 0;
-		          while ((read = fis.read(buffer)) != -1) {
-		            zos.write(buffer, 0, read);
-		          }
-		          zos.closeEntry();
-		          fis.close();
-		        }
-		      }
-		      zos.close();
-		      FileOutputStream fw = new FileOutputStream(targetZipFile);
-		      fw.write(fos.toByteArray());
-		      fw.flush();
-		      fw.close();
-		    } catch (FileNotFoundException e) {
-		      System.out.println("File not found : " + e);
-		    }
-		  }
+	  private void convertFormat(ByteArrayInputStream inputStream,
+	            ByteArrayOutputStream outputStream, String formatName) throws IOException {
+	        BufferedImage inputImage = ImageIO.read(inputStream);
+	         
+	        ImageIO.write(inputImage, formatName, outputStream);
+	         
+	    }
 
 }
